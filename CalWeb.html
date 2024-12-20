@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Interactive Graph Drawing (Final)</title>
+<title>Interactive Graph Drawing (Full Size)</title>
 <style>
   body {
     margin:0;
     padding:0;
     background-color:#F4F8FA;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     color:#333;
     box-sizing:border-box;
     height:100vh;
@@ -36,6 +36,7 @@
     flex-direction:column;
     background:#F4F8FA;
     padding:20px;
+    overflow:hidden;
   }
 
   .section {
@@ -141,6 +142,9 @@
     background:#fff;
     border:1px solid #ddd;
     border-radius:10px;
+    width:100%;
+    height:100%;
+    display:block;
   }
 
   .graph-toolbar {
@@ -331,7 +335,7 @@
   </div>
   <div class="right-panel">
     <div class="graph-container">
-      <canvas id="graphCanvas" width="600" height="400"></canvas>
+      <canvas id="graphCanvas"></canvas>
       <div class="graph-hover-info" id="graphHoverInfo"></div>
       <div class="graph-toolbar">
         <button class="btn" id="zoomInBtn">+</button>
@@ -376,7 +380,7 @@
 </div>
 
 <script>
-// ----------------------- Function Palette Insert -----------------------
+// Function palette insert
 document.querySelectorAll('.fp-btn').forEach(btn=>{
   btn.addEventListener('click',()=>{
     const eqInput=document.getElementById('equationInput');
@@ -384,7 +388,7 @@ document.querySelectorAll('.fp-btn').forEach(btn=>{
   });
 });
 
-// ----------------------- Calculator -----------------------
+// Calculator
 const modal = document.getElementById('calculatorModal');
 const openCalc = document.getElementById('openCalc');
 const closeCalc = document.getElementById('closeCalc');
@@ -392,7 +396,7 @@ const calcDisplay = document.getElementById('calcDisplay');
 const calcExpression = document.getElementById('calcExpression');
 openCalc.addEventListener('click', ()=>{
   modal.style.display='block';
-  calcDisplay.value=(calcExpression.value||'');
+  calcDisplay.value=(calcExpression? calcExpression.value : '');
 });
 closeCalc.addEventListener('click', ()=>{modal.style.display='none';});
 document.getElementById('calcClear').addEventListener('click',()=>{calcDisplay.value='';});
@@ -407,13 +411,13 @@ document.getElementById('calcEquals').addEventListener('click',()=>{
   try{
     let result=eval(expr);
     calcDisplay.value=result;
-    calcExpression.value=result;
+    if(calcExpression) calcExpression.value=result;
   }catch(e){
     calcDisplay.value='Error';
   }
 });
 
-// ----------------------- Drawing Canvas -----------------------
+// Drawing
 (function(){
   const canvas=document.getElementById('drawCanvas');
   const ctx=canvas.getContext('2d');
@@ -427,16 +431,10 @@ document.getElementById('calcEquals').addEventListener('click',()=>{
     actx.strokeStyle="#aaa";
     let cx=axisCanvas.width/2;
     let cy=axisCanvas.height/2;
-    // x-axis
     actx.beginPath();
-    actx.moveTo(0,cy);
-    actx.lineTo(axisCanvas.width,cy);
-    actx.stroke();
-    // y-axis
+    actx.moveTo(0,cy);actx.lineTo(axisCanvas.width,cy);actx.stroke();
     actx.beginPath();
-    actx.moveTo(cx,0);
-    actx.lineTo(cx,axisCanvas.height);
-    actx.stroke();
+    actx.moveTo(cx,0);actx.lineTo(cx,axisCanvas.height);actx.stroke();
   }
   drawDrawAxis();
 
@@ -466,10 +464,8 @@ document.getElementById('calcEquals').addEventListener('click',()=>{
       alert("Draw something first!");
       return;
     }
-    const Xrange=[-10,10];
-    const Yrange=[-10,10];
-    const cwidth=canvas.width;
-    const cheight=canvas.height;
+    const Xrange=[-10,10],Yrange=[-10,10];
+    const cwidth=canvas.width,cheight=canvas.height;
 
     function c2gx(cx){return Xrange[0]+(Xrange[1]-Xrange[0])*(cx/cwidth);}
     function c2gy(cy){return Yrange[1]-(Yrange[1]-Yrange[0])*(cy/cheight);}
@@ -488,330 +484,310 @@ document.getElementById('calcEquals').addEventListener('click',()=>{
   });
 })();
 
-// ----------------------- Graph Drawing -----------------------
-(function(){
-  const graphCanvas=document.getElementById('graphCanvas');
-  const gctx=graphCanvas.getContext('2d');
-  const hoverInfo=document.getElementById('graphHoverInfo');
-  let globalScale=20;
-  let drawnGraphs=[];
-  window.drawnFunction=null;
+// Graph
+const graphCanvas=document.getElementById('graphCanvas');
+const gctx=graphCanvas.getContext('2d');
+const hoverInfo=document.getElementById('graphHoverInfo');
+let globalScale=20;
+let drawnGraphs=[];
+window.drawnFunction=null;
 
-  let xMin=-10,xMax=10,yMin=-10,yMax=10;
+let xMin=-10,xMax=10,yMin=-10,yMax=10;
 
-  graphCanvas.addEventListener('mousemove',(e)=>{
-    const rect=graphCanvas.getBoundingClientRect();
-    const mx=e.clientX-rect.left;
-    const my=e.clientY-rect.top;
-    const cx=graphCanvas.width/2;
-    const cy=graphCanvas.height/2;
-    let gx=(mx-cx)/globalScale;
-    let gy=(cy-my)/globalScale;
-    hoverInfo.style.display='block';
-    hoverInfo.style.left='5px';
-    hoverInfo.style.top='5px';
-    hoverInfo.innerText=`x=${gx.toFixed(2)}, y=${gy.toFixed(2)}`;
-  });
-  graphCanvas.addEventListener('mouseleave',()=>{
-    hoverInfo.style.display='none';
-  });
+function resizeCanvas(){
+  graphCanvas.width=graphCanvas.clientWidth;
+  graphCanvas.height=graphCanvas.clientHeight;
+  redraw();
+}
 
-  function drawAxis2D(){
-    gctx.clearRect(0,0,graphCanvas.width,graphCanvas.height);
-    gctx.strokeStyle="#aaa";
-    gctx.lineWidth=1;
-    const cx=graphCanvas.width/2;
-    const cy=graphCanvas.height/2;
-    // x-axis
-    gctx.beginPath();
-    gctx.moveTo(0,cy);
-    gctx.lineTo(graphCanvas.width,cy);
-    gctx.stroke();
-    // y-axis
-    gctx.beginPath();
-    gctx.moveTo(cx,0);
-    gctx.lineTo(cx,graphCanvas.height);
-    gctx.stroke();
+window.addEventListener('resize',resizeCanvas);
+resizeCanvas();
+
+graphCanvas.addEventListener('mousemove',(e)=>{
+  const rect=graphCanvas.getBoundingClientRect();
+  const mx=e.clientX-rect.left;
+  const my=e.clientY-rect.top;
+  const cx=graphCanvas.width/2;
+  const cy=graphCanvas.height/2;
+  let gx=(mx-cx)/globalScale;
+  let gy=(cy-my)/globalScale;
+  hoverInfo.style.display='block';
+  hoverInfo.style.left='5px';
+  hoverInfo.style.top='5px';
+  hoverInfo.innerText=`x=${gx.toFixed(2)}, y=${gy.toFixed(2)}`;
+});
+graphCanvas.addEventListener('mouseleave',()=>{
+  hoverInfo.style.display='none';
+});
+
+function drawAxis2D(){
+  gctx.clearRect(0,0,graphCanvas.width,graphCanvas.height);
+  gctx.strokeStyle="#aaa";
+  gctx.lineWidth=1;
+  const cx=graphCanvas.width/2;
+  const cy=graphCanvas.height/2;
+  gctx.beginPath();gctx.moveTo(0,cy);gctx.lineTo(graphCanvas.width,cy);gctx.stroke();
+  gctx.beginPath();gctx.moveTo(cx,0);gctx.lineTo(cx,graphCanvas.height);gctx.stroke();
+}
+
+let angleX=Math.PI/4, angleZ=Math.PI/6, dist=300;
+function project3D(X,Y,Z){
+  let Yp=Y*Math.cos(angleX)-Z*Math.sin(angleX);
+  let Zp=Y*Math.sin(angleX)+Z*Math.cos(angleX);
+  let Xp=X*Math.cos(angleZ)-Yp*Math.sin(angleZ);
+  let Ypp=X*Math.sin(angleZ)+Yp*Math.cos(angleZ);
+  let scale=dist/(dist+Zp);
+  const cx=graphCanvas.width/2;
+  const cy=graphCanvas.height/2;
+  return {x:cx+Xp*globalScale*scale,y:cy - Ypp*globalScale*scale};
+}
+
+function drawAxis3D(){
+  gctx.clearRect(0,0,graphCanvas.width,graphCanvas.height);
+  gctx.strokeStyle="#aaa";gctx.lineWidth=1;
+  let p1=project3D(0,0,0);
+  let px=project3D(5,0,0),py=project3D(0,5,0),pz=project3D(0,0,5);
+  gctx.beginPath();gctx.moveTo(p1.x,p1.y);gctx.lineTo(px.x,px.y);gctx.stroke();
+  gctx.beginPath();gctx.moveTo(p1.x,p1.y);gctx.lineTo(py.x,py.y);gctx.stroke();
+  gctx.beginPath();gctx.moveTo(p1.x,p1.y);gctx.lineTo(pz.x,pz.y);gctx.stroke();
+}
+
+function setLineStyle(style){
+  let dash=[];
+  switch(style){
+    case 'dotted':dash=[1,2];break;
+    case 'dashed':dash=[5,5];break;
+    case 'double':dash=[2,2];break;
+    case 'groove':dash=[10,10];break;
+    default:dash=[];
   }
+  gctx.setLineDash(dash);
+}
 
-  function drawAxis3D(){
-    gctx.clearRect(0,0,graphCanvas.width,graphCanvas.height);
-    // Simple 3D axes
-    gctx.strokeStyle="#aaa";
-    gctx.lineWidth=1;
-    let p1=project3D(0,0,0);
-    let px=project3D(5,0,0), py=project3D(0,5,0), pz=project3D(0,0,5);
-    // x-axis
-    gctx.beginPath();gctx.moveTo(p1.x,p1.y);gctx.lineTo(px.x,px.y);gctx.stroke();
-    // y-axis
-    gctx.beginPath();gctx.moveTo(p1.x,p1.y);gctx.lineTo(py.x,py.y);gctx.stroke();
-    // z-axis
-    gctx.beginPath();gctx.moveTo(p1.x,p1.y);gctx.lineTo(pz.x,pz.y);gctx.stroke();
-  }
+function parseFunction(eq){
+  let expr=eq.trim();
+  expr=expr.replace(/^z\s*=\s*/,'');
+  expr=expr.replace(/\\sin\(/g,'Math.sin(')
+           .replace(/\\cos\(/g,'Math.cos(')
+           .replace(/\\tan\(/g,'Math.tan(');
+  expr=expr.replace(/([a-zA-Z0-9]+)\^([a-zA-Z0-9]+)/g,'Math.pow($1,$2)');
+  expr=expr.replace(/\\/g,'');
+  return expr;
+}
 
-  let angleX=Math.PI/4, angleZ=Math.PI/6, dist=300;
-  function project3D(X,Y,Z){
-    let Yp=Y*Math.cos(angleX)-Z*Math.sin(angleX);
-    let Zp=Y*Math.sin(angleX)+Z*Math.cos(angleX);
-    let Xp=X*Math.cos(angleZ)-Yp*Math.sin(angleZ);
-    let Ypp=X*Math.sin(angleZ)+Yp*Math.cos(angleZ);
-    let scale=dist/(dist+Zp);
-    const cx=graphCanvas.width/2;
-    const cy=graphCanvas.height/2;
-    return {x:cx+Xp*globalScale*scale,y:cy - Ypp*globalScale*scale};
-  }
+function drawGraph2D(expr, style, color, fill){
+  const cx=graphCanvas.width/2;
+  const cy=graphCanvas.height/2;
+  const step=(xMax-xMin)/200;
+  setLineStyle(style);
+  gctx.strokeStyle=color;
+  gctx.lineWidth=2;
 
-  function setLineStyle(style){
-    let dash=[];
-    switch(style){
-      case 'dotted':dash=[1,2];break;
-      case 'dashed':dash=[5,5];break;
-      case 'double':dash=[2,2];break;
-      case 'groove':dash=[10,10];break;
-      default:dash=[];
+  let f=new Function('x',`try {return ${expr};}catch(e){return NaN;}`);
+
+  gctx.beginPath();
+  let start=true;
+  let points=[];
+  for(let X=xMin;X<=xMax;X+=step){
+    let Y=f(X);
+    if(isNaN(Y)||!isFinite(Y)){start=true;}else{
+      let px=cx+X*globalScale;
+      let py=cy - Y*globalScale;
+      if(start){gctx.moveTo(px,py);start=false;}else{gctx.lineTo(px,py);}
+      points.push({X,Y,px,py});
     }
-    gctx.setLineDash(dash);
   }
+  gctx.stroke();
 
-  function parseFunction(eq){
-    let expr=eq.trim();
-    expr=expr.replace(/^z\s*=\s*/,''); // Remove z= for 3D
-    expr=expr.replace(/\\sin\(/g,'Math.sin(')
-             .replace(/\\cos\(/g,'Math.cos(')
-             .replace(/\\tan\(/g,'Math.tan(');
-    expr=expr.replace(/([a-zA-Z0-9]+)\^([a-zA-Z0-9]+)/g,'Math.pow($1,$2)');
-    expr=expr.replace(/\\/g,'');
-    return expr;
-  }
-
-  function drawGraph2D(expr, style, color, fill){
-    const cx=graphCanvas.width/2;
-    const cy=graphCanvas.height/2;
-    const step=(xMax-xMin)/200;
-    setLineStyle(style);
-    gctx.strokeStyle=color;
-    gctx.lineWidth=2;
-
-    let f=new Function('x',`
-      try {
-        return ${expr};
-      } catch(e){return NaN;}
-    `);
-
+  if(fill && points.length>1){
+    gctx.fillStyle=color+"22";
     gctx.beginPath();
+    gctx.moveTo(points[0].px,cy);
+    for(let i=0;i<points.length;i++){
+      gctx.lineTo(points[i].px,points[i].py);
+    }
+    gctx.lineTo(points[points.length-1].px,cy);
+    gctx.closePath();
+    gctx.fill();
+  }
+
+  gctx.setLineDash([]);
+
+  return points;
+}
+
+function drawGraph3D(expr, style, color){
+  let f=new Function('x','y',`try{return ${expr};}catch(e){return NaN;}`);
+
+  let steps=20;
+  let Xrange=[xMin,xMax],Yrange=[yMin,yMax];
+  let dx=(Xrange[1]-Xrange[0])/steps;
+  let dy=(Yrange[1]-Yrange[0])/steps;
+
+  setLineStyle(style);
+  gctx.strokeStyle=color;
+  gctx.lineWidth=1.5;
+
+  // x-direction lines
+  for(let i=0;i<=steps;i++){
+    let Y=Yrange[0]+dy*i;
     let start=true;
-    let points=[];
-    for(let X=xMin;X<=xMax;X+=step){
-      let Y=f(X);
-      if(isNaN(Y)||!isFinite(Y)){
-        start=true;
-      }else{
-        let px=cx+X*globalScale;
-        let py=cy - Y*globalScale;
-        if(start){gctx.moveTo(px,py);start=false;} else {gctx.lineTo(px,py);}
-        points.push({X,Y,px,py});
-      }
-    }
-    gctx.stroke();
-
-    if(fill && points.length>1){
-      gctx.fillStyle=color+"22";
-      gctx.beginPath();
-      gctx.moveTo(points[0].px,cy);
-      for(let i=0;i<points.length;i++){
-        gctx.lineTo(points[i].px,points[i].py);
-      }
-      gctx.lineTo(points[points.length-1].px,cy);
-      gctx.closePath();
-      gctx.fill();
-    }
-
-    gctx.setLineDash([]);
-
-    return points;
-  }
-
-  function drawGraph3D(expr, style, color){
-    let f=new Function('x','y',`
-      try{
-        return ${expr};
-      }catch(e){return NaN;}
-    `);
-
-    let steps=20;
-    let Xrange=[xMin,xMax],Yrange=[yMin,yMax];
-    let dx=(Xrange[1]-Xrange[0])/steps;
-    let dy=(Yrange[1]-Yrange[0])/steps;
-
-    setLineStyle(style);
-    gctx.strokeStyle=color;
-    gctx.lineWidth=1.5;
-
-    // x-direction lines
-    for(let i=0;i<=steps;i++){
-      let Y=Yrange[0]+dy*i;
-      let start=true;
-      gctx.beginPath();
-      for(let j=0;j<=steps;j++){
-        let X=Xrange[0]+dx*j;
-        let Z=f(X,Y);
-        if(isNaN(Z)||!isFinite(Z)){start=true;continue;}
-        let p=project3D(X,Y,Z);
-        if(start){gctx.moveTo(p.x,p.y);start=false;}else{gctx.lineTo(p.x,p.y);}
-      }
-      gctx.stroke();
-    }
-
-    // y-direction lines
+    gctx.beginPath();
     for(let j=0;j<=steps;j++){
       let X=Xrange[0]+dx*j;
-      let start=true;
-      gctx.beginPath();
-      for(let i=0;i<=steps;i++){
-        let Y=Yrange[0]+dy*i;
-        let Z=f(X,Y);
-        if(isNaN(Z)||!isFinite(Z)){start=true;continue;}
-        let p=project3D(X,Y,Z);
-        if(start){gctx.moveTo(p.x,p.y);start=false;}else{gctx.lineTo(p.x,p.y);}
-      }
-      gctx.stroke();
-    }
-
-    gctx.setLineDash([]);
-  }
-
-  function drawPiecewiseFromDrawn(style,color){
-    if(!window.drawnFunction)return;
-    let gData=window.drawnFunction.points;
-    if(!gData||gData.length<2)return;
-    const cx=graphCanvas.width/2;
-    const cy=graphCanvas.height/2;
-    setLineStyle(style);
-    gctx.strokeStyle=color;
-    gctx.lineWidth=2;
-
-    gctx.beginPath();
-    gctx.moveTo(cx+gData[0].x*globalScale,cy-gData[0].y*globalScale);
-    for(let i=1;i<gData.length;i++){
-      gctx.lineTo(cx+gData[i].x*globalScale,cy-gData[i].y*globalScale);
+      let Z=f(X,Y);
+      if(isNaN(Z)||!isFinite(Z)){start=true;continue;}
+      let p=project3D(X,Y,Z);
+      if(start){gctx.moveTo(p.x,p.y);start=false;}else{gctx.lineTo(p.x,p.y);}
     }
     gctx.stroke();
-    gctx.setLineDash([]);
   }
 
-  function findIntersections(allPointsArrays){
-    // Very rough intersection finder for 2D:
-    let intersections=[];
-    for(let i=0;i<allPointsArrays.length;i++){
-      for(let j=i+1;j<allPointsArrays.length;j++){
-        let arr1=allPointsArrays[i];
-        let arr2=allPointsArrays[j];
-        // simple approach: assume same length arrays not guaranteed
-        let length=Math.min(arr1.length,arr2.length);
-        for(let k=1;k<length;k++){
-          let dy0=arr1[k-1].Y - arr2[k-1].Y;
-          let dy1=arr1[k].Y - arr2[k].Y;
-          if(dy0*dy1<0){
-            // intersection near here
-            let Xmid=(arr1[k].X+arr1[k-1].X)/2;
-            let Ymid=(arr1[k].Y+arr1[k-1].Y)/2;
-            intersections.push({X:Xmid,Y:Ymid});
-          }
+  // y-direction lines
+  for(let j=0;j<=steps;j++){
+    let X=Xrange[0]+dx*j;
+    let start=true;
+    gctx.beginPath();
+    for(let i=0;i<=steps;i++){
+      let Y=Yrange[0]+dy*i;
+      let Z=f(X,Y);
+      if(isNaN(Z)||!isFinite(Z)){start=true;continue;}
+      let p=project3D(X,Y,Z);
+      if(start){gctx.moveTo(p.x,p.y);start=false;}else{gctx.lineTo(p.x,p.y);}
+    }
+    gctx.stroke();
+  }
+
+  gctx.setLineDash([]);
+}
+
+function drawPiecewiseFromDrawn(style,color){
+  if(!window.drawnFunction)return;
+  let gData=window.drawnFunction.points;
+  if(!gData||gData.length<2)return;
+  const cx=graphCanvas.width/2;
+  const cy=graphCanvas.height/2;
+  setLineStyle(style);
+  gctx.strokeStyle=color;
+  gctx.lineWidth=2;
+
+  gctx.beginPath();
+  gctx.moveTo(cx+gData[0].x*globalScale,cy-gData[0].y*globalScale);
+  for(let i=1;i<gData.length;i++){
+    gctx.lineTo(cx+gData[i].x*globalScale,cy-gData[i].y*globalScale);
+  }
+  gctx.stroke();
+  gctx.setLineDash([]);
+}
+
+function findIntersections(allPointsArrays){
+  let intersections=[];
+  for(let i=0;i<allPointsArrays.length;i++){
+    for(let j=i+1;j<allPointsArrays.length;j++){
+      let arr1=allPointsArrays[i];
+      let arr2=allPointsArrays[j];
+      let length=Math.min(arr1.length,arr2.length);
+      for(let k=1;k<length;k++){
+        let dy0=arr1[k-1].Y - arr2[k-1].Y;
+        let dy1=arr1[k].Y - arr2[k].Y;
+        if(dy0*dy1<0){
+          let Xmid=(arr1[k].X+arr1[k-1].X)/2;
+          let Ymid=(arr1[k].Y+arr1[k-1].Y)/2;
+          intersections.push({X:Xmid,Y:Ymid});
         }
       }
     }
-    return intersections;
   }
+  return intersections;
+}
 
-  function drawIntersections(intersections){
-    if(intersections.length===0)return;
-    const cx=graphCanvas.width/2;
-    const cy=graphCanvas.height/2;
-    gctx.fillStyle="#A2142F";
-    for(let p of intersections){
-      let px=cx+p.X*globalScale;
-      let py=cy - p.Y*globalScale;
-      gctx.beginPath();
-      gctx.arc(px,py,4,0,Math.PI*2);
-      gctx.fill();
-    }
+function drawIntersections(intersections){
+  if(intersections.length===0)return;
+  const cx=graphCanvas.width/2;
+  const cy=graphCanvas.height/2;
+  gctx.fillStyle="#A2142F";
+  for(let p of intersections){
+    let px=cx+p.X*globalScale;
+    let py=cy - p.Y*globalScale;
+    gctx.beginPath();
+    gctx.arc(px,py,4,0,Math.PI*2);
+    gctx.fill();
   }
+}
 
-  function redraw(){
-    if(drawnGraphs.length>0){
-      let lastDim=drawnGraphs[drawnGraphs.length-1].dimension;
-      if(lastDim==='2D'){
-        drawAxis2D();
-        let allPoints=[];
-        for(let g of drawnGraphs){
-          if(g.dimension==='2D'){
-            let pts=drawGraph2D(g.expr, g.style, g.color, g.fill);
-            if(pts) allPoints.push(pts);
-          }
-        }
-        if(window.drawnFunction){
-          drawPiecewiseFromDrawn('solid','#EDB120');
-        }
-        let inter=findIntersections(allPoints);
-        drawIntersections(inter);
-      }else{
-        drawAxis3D();
-        for(let g of drawnGraphs){
-          if(g.dimension==='3D'){
-            drawGraph3D(g.expr,g.style,g.color);
-          }
-        }
-        if(window.drawnFunction){
-          // 3D piecewise not implemented
-        }
-      }
-    }else{
-      // no graphs
+function redraw(){
+  if(drawnGraphs.length>0){
+    let lastDim=drawnGraphs[drawnGraphs.length-1].dimension;
+    if(lastDim==='2D'){
       drawAxis2D();
+      let allPoints=[];
+      for(let g of drawnGraphs){
+        if(g.dimension==='2D'){
+          let pts=drawGraph2D(g.expr,g.style,g.color,g.fill);
+          if(pts) allPoints.push(pts);
+        }
+      }
       if(window.drawnFunction){
         drawPiecewiseFromDrawn('solid','#EDB120');
       }
+      let inter=findIntersections(allPoints);
+      drawIntersections(inter);
+    }else{
+      drawAxis3D();
+      for(let g of drawnGraphs){
+        if(g.dimension==='3D'){
+          drawGraph3D(g.expr,g.style,g.color);
+        }
+      }
+      if(window.drawnFunction){
+        // 3D piecewise not implemented
+      }
+    }
+  }else{
+    drawAxis2D();
+    if(window.drawnFunction){
+      drawPiecewiseFromDrawn('solid','#EDB120');
     }
   }
+}
 
-  document.getElementById('drawButton').addEventListener('click',()=>{
-    const eqVal=document.getElementById('equationInput').value;
-    const equations=eqVal.split('\n').map(e=>e.trim()).filter(e=>e.length>0);
-    const style=document.getElementById('lineStyle').value;
-    const color=document.getElementById('lineColor').value;
-    const fill=document.getElementById('fillArea').checked;
-    const dimension=document.querySelector('input[name="dimension"]:checked').value;
-    const overlayMode=document.querySelector('input[name="overlayMode"]:checked').value;
+document.getElementById('drawButton').addEventListener('click',()=>{
+  const eqVal=document.getElementById('equationInput').value;
+  const equations=eqVal.split('\n').map(e=>e.trim()).filter(e=>e.length>0);
+  const style=document.getElementById('lineStyle').value;
+  const color=document.getElementById('lineColor').value;
+  const fill=document.getElementById('fillArea').checked;
+  const dimension=document.querySelector('input[name="dimension"]:checked').value;
+  const overlayMode=document.querySelector('input[name="overlayMode"]:checked').value;
 
-    if(dimension==='3D'){
-      alert("3D mode is simple wireframe only. No fill or intersections.");
-    }
+  if(dimension==='3D'){
+    alert("3D mode is a simple wireframe only. No fill or intersections.");
+  }
 
-    if(overlayMode==='new'){
-      drawnGraphs=[];
-    }
+  if(overlayMode==='new'){
+    drawnGraphs=[];
+  }
 
-    for(let eq of equations){
-      let expr=parseFunction(eq);
-      drawnGraphs.push({expr,style,color,fill,dimension});
-    }
+  for(let eq of equations){
+    let expr=parseFunction(eq);
+    drawnGraphs.push({expr,style,color,fill,dimension});
+  }
 
-    redraw();
-  });
+  redraw();
+});
 
-  document.getElementById('zoomInBtn').addEventListener('click',()=>{
-    globalScale*=1.2;redraw();
-  });
-  document.getElementById('zoomOutBtn').addEventListener('click',()=>{
-    globalScale/=1.2;redraw();
-  });
-  document.getElementById('resetZoomBtn').addEventListener('click',()=>{
-    globalScale=20;redraw();
-  });
+document.getElementById('zoomInBtn').addEventListener('click',()=>{
+  globalScale*=1.2;redraw();
+});
+document.getElementById('zoomOutBtn').addEventListener('click',()=>{
+  globalScale/=1.2;redraw();
+});
+document.getElementById('resetZoomBtn').addEventListener('click',()=>{
+  globalScale=20;redraw();
+});
 
-  // initial empty axis
-  drawAxis2D();
-})();
+// 초기 draw
+// redraw()는 resizeCanvas에서 호출하므로 여기서는 필요 없음.
 </script>
 </body>
 </html>
