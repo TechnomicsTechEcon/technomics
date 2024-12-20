@@ -3,40 +3,38 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Refined Graph Layout (Framer Style)</title>
+<title>Interactive Graph Drawing (Final)</title>
 <style>
   body {
     margin:0;
     padding:0;
     background-color:#F4F8FA;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     color:#333;
+    box-sizing:border-box;
+    height:100vh;
+    display:flex;
+    flex-direction:column;
+  }
+  .container {
+    display:flex;
+    flex:1;
     overflow:hidden;
   }
-
-  .container {
-    display: flex;
-    flex-direction: row;
-    height: 100vh;
-    box-sizing: border-box;
-  }
-
   .left-panel {
-    flex: 0 0 300px;
-    background-color: #fff;
-    border-right:1px solid #e0e0e0;
-    display:flex; 
+    flex:0 0 300px;
+    background:#fff;
+    border-right:1px solid #ddd;
+    display:flex;
     flex-direction:column;
     overflow:auto;
     padding:20px;
   }
-
   .right-panel {
     flex:1;
     display:flex;
     flex-direction:column;
-    background-color:#F4F8FA;
-    position:relative;
+    background:#F4F8FA;
     padding:20px;
   }
 
@@ -45,63 +43,49 @@
     width:100%;
   }
   .section h3 {
-    margin:0 0 12px 0;
+    margin:0 0 10px;
     font-size:16px;
     font-weight:500;
-    color:#333;
   }
   .section small {
     color:#666;
     font-size:12px;
   }
-
   .input-area {
     display:block;
-    width: 100%;
+    width:100%;
     box-sizing:border-box;
     padding:8px;
     margin-bottom:10px;
-    border:1px solid #ddd;
+    border:1px solid #ccc;
     border-radius:5px;
     font-size:14px;
     background:#fff;
   }
-
-  .input-group {
-    margin-bottom:10px;
-  }
-
   .btn {
     display:inline-block;
     padding:8px 12px;
-    border:1px solid #ddd;
+    border:1px solid #ccc;
     border-radius:5px;
     background:#fff;
     cursor:pointer;
     margin-right:5px;
     font-size:14px;
-    transition: background 0.2s, box-shadow 0.2s;
-    color:#333;
+    transition: background 0.2s;
     text-decoration:none;
+    color:#333;
     font-weight:500;
   }
-
   .btn:hover {
-    background:#f7f7f7;
-    box-shadow:0 1px 3px rgba(0,0,0,0.05);
+    background:#f0f0f0;
   }
-
   .control-section {
-    margin-bottom:12px;
+    margin-bottom:10px;
   }
   .control-section label {
     font-size:14px;
     margin-right:5px;
-    color:#333;
-    font-weight:400;
   }
-
-  /* Function Palette */
   .function-palette {
     display:flex;
     flex-wrap:wrap;
@@ -110,88 +94,88 @@
   }
   .function-palette .fp-btn {
     background:#fff;
-    border:1px solid #ddd;
+    border:1px solid #ccc;
     border-radius:5px;
     padding:5px 8px;
     cursor:pointer;
     font-size:12px;
-    transition:background 0.2s, box-shadow 0.2s;
-    color:#333;
-    font-weight:400;
   }
   .function-palette .fp-btn:hover {
-    background:#f7f7f7;
-    box-shadow:0 1px 3px rgba(0,0,0,0.05);
+    background:#f0f0f0;
   }
 
-  /* Graph and Toolbar */
-  .graph-container {
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-    flex:1;
-    position:relative;
-    background: linear-gradient(to bottom right, #F4F8FA, #FFFFFF);
-    overflow:hidden;
-    border-radius:10px;
-    border:1px solid #ddd;
-  }
-
-  /* Hover info box */
-  .graph-hover-info {
-    position:absolute;
-    top:5px;
-    left:5px;
-    background:#fff;
-    border:1px solid #ddd;
-    border-radius:3px;
-    padding:5px;
-    font-size:12px;
-    pointer-events:none;
-    display:none;
-    color:#333;
-    font-weight:400;
-  }
-
-  /* Toolbar */
-  .graph-toolbar {
-    position:absolute;
-    top:15px;
-    right:15px;
-    background:#fff;
-    border:1px solid #ddd;
-    border-radius:5px;
-    display:flex;
-    flex-direction:row;
-    box-shadow:0 1px 3px rgba(0,0,0,0.1);
-    overflow:hidden;
-  }
-  .graph-toolbar .btn {
-    border:none;
-    border-right:1px solid #ddd;
-    background:#fff;
-    font-size:14px;
-    font-weight:500;
-  }
-  .graph-toolbar .btn:last-child {
-    border-right:none;
-  }
-
-  /* Drawing Area */
+  /* Drawing area */
   .drawing-container {
     position:relative;
+    width:260px;
+    height:150px;
   }
   .drawing-canvas {
-    border:1px solid #ddd;
+    border:1px solid #ccc;
     background:#fff;
     cursor:crosshair;
     border-radius:5px;
   }
   .draw-axis-canvas {
     position:absolute;
-    top:0; left:0;
+    top:0;left:0;
     pointer-events:none;
+  }
+
+  /* Graph */
+  .graph-container {
+    flex:1;
+    position:relative;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background: linear-gradient(to bottom right, #F4F8FA, #ffffff);
+    border:1px solid #ddd;
+    border-radius:10px;
+    overflow:hidden;
+  }
+  #graphCanvas {
+    position:absolute;
+    top:0;
+    left:0;
+    background:#fff;
+    border:1px solid #ddd;
+    border-radius:10px;
+  }
+
+  .graph-toolbar {
+    position:absolute;
+    top:15px;
+    right:15px;
+    background:#fff;
+    border:1px solid #ccc;
+    border-radius:5px;
+    display:flex;
+    flex-direction:row;
+    box-shadow:0 2px 6px rgba(0,0,0,0.1);
+    overflow:hidden;
+  }
+  .graph-toolbar .btn {
+    border:none;
+    border-right:1px solid #ccc;
+    background:#fff;
+  }
+  .graph-toolbar .btn:last-child {
+    border-right:none;
+  }
+
+  .graph-hover-info {
+    position:absolute;
+    top:5px;
+    left:5px;
+    background:#fff;
+    border:1px solid #ccc;
+    border-radius:3px;
+    padding:5px;
+    font-size:12px;
+    pointer-events:none;
+    display:none;
+    color:#333;
   }
 
   /* Calculator Modal */
@@ -201,7 +185,7 @@
     left:50%;
     transform:translate(-50%,-50%);
     background:#fff;
-    border:1px solid #ddd;
+    border:1px solid #ccc;
     border-radius:8px;
     box-shadow:0 2px 10px rgba(0,0,0,0.1);
     width:300px;
@@ -211,7 +195,7 @@
   .calculator-header {
     padding:10px;
     background:#F4F8FA;
-    border-bottom:1px solid #ddd;
+    border-bottom:1px solid #ccc;
     text-align:center;
     font-weight:500;
     position:relative;
@@ -225,7 +209,7 @@
     box-sizing:border-box;
     padding:8px;
     margin-bottom:10px;
-    border:1px solid #ddd;
+    border:1px solid #ccc;
     font-size:16px;
     text-align:right;
     border-radius:3px;
@@ -240,22 +224,20 @@
     flex:1;
     margin-right:5px;
     background:#fff;
-    border:1px solid #ddd;
+    border:1px solid #ccc;
     border-radius:3px;
     font-size:14px;
     text-align:center;
     cursor:pointer;
     padding:8px 0;
-    transition:background 0.2s, box-shadow 0.2s;
+    transition:background 0.2s;
     color:#333;
-    font-weight:400;
   }
   .calc-btn:last-child {
     margin-right:0;
   }
   .calc-btn:hover {
-    background:#f7f7f7;
-    box-shadow:0 1px 3px rgba(0,0,0,0.05);
+    background:#f0f0f0;
   }
   .close-btn {
     position:absolute;
@@ -265,29 +247,26 @@
     font-size:14px;
     color:#333;
   }
-
 </style>
 </head>
 <body>
 <div class="container">
   <div class="left-panel">
-
-    <!-- Equations Input -->
+    <!-- 1. Equations Input -->
     <div class="section">
       <h3>1. Equations Input</h3>
-      <small>Enter multiple equations (one per line). For 3D use z=. Click buttons to insert functions.</small>
+      <small>Enter equations (one per line). Use \sin(x), x^2 etc. For 3D: z=... (wireframe only).</small>
+      
       <div class="function-palette">
-        <!-- Example function buttons -->
         <div class="fp-btn" data-func="\\sin(x)">sin</div>
         <div class="fp-btn" data-func="\\cos(x)">cos</div>
         <div class="fp-btn" data-func="\\tan(x)">tan</div>
         <div class="fp-btn" data-func="x^2">x²</div>
-        <div class="fp-btn" data-func="Math.sqrt(x)">√x</div>
         <div class="fp-btn" data-func="\\sin(x)*\\cos(x)">sin(x)*cos(x)</div>
-        <div class="fp-btn" data-func="\\tan(x)*x">tan(x)*x</div>
+        <div class="fp-btn" data-func="Math.sqrt(x)">√x</div>
         <div class="fp-btn" data-func="x^3">x³</div>
       </div>
-      <textarea id="equationInput" class="input-area" placeholder="e.g. \sin(x), x^2, or z=sin(x)*cos(y)"></textarea>
+      <textarea id="equationInput" class="input-area" placeholder="e.g. \sin(x), x^2, or z=\sin(x)*\cos(y)"></textarea>
 
       <div class="control-section">
         <label>Line Style:</label>
@@ -296,7 +275,7 @@
           <option value="dashed">Dashed</option>
           <option value="dotted">Dotted</option>
           <option value="double">Double</option>
-          <option value="groove">Thick (Groove)</option>
+          <option value="groove">Groove</option>
         </select>
       </div>
       <div class="control-section">
@@ -305,7 +284,7 @@
       </div>
       <div class="control-section" style="display:flex;align-items:center;">
         <input type="checkbox" id="fillArea" style="margin-right:5px;">
-        <label for="fillArea">Fill Area Under Curve (2D only)</label>
+        <label for="fillArea">Fill Area Under Curve (2D)</label>
       </div>
 
       <div class="control-section">
@@ -325,20 +304,20 @@
       </div>
     </div>
 
-    <!-- Calculator -->
+    <!-- 2. Calculator -->
     <div class="section">
       <h3>2. Engineering Calculator</h3>
-      <div class="input-group" style="display:flex; align-items:center;">
-        <input type="text" id="calcExpression" class="input-area" placeholder="Enter expression to calculate"/>
+      <div style="display:flex;align-items:center;">
+        <input type="text" id="calcExpression" class="input-area" placeholder="Enter expression"/>
         <button class="btn" id="openCalc">=</button>
       </div>
-      <small>You can use the calculated result in the equations above or elsewhere.</small>
+      <small>You can use the result in your equations above.</small>
     </div>
 
-    <!-- Drawing Area -->
+    <!-- 3. Free Drawing -->
     <div class="section">
       <h3>3. Free Drawing -> Function</h3>
-      <div class="drawing-container" style="width:260px; height:150px; position:relative;">
+      <div class="drawing-container">
         <canvas id="drawCanvas" class="drawing-canvas" width="260" height="150"></canvas>
         <canvas id="drawAxisCanvas" class="draw-axis-canvas" width="260" height="150"></canvas>
       </div>
@@ -346,11 +325,10 @@
         <button class="btn" id="clearDraw">Clear</button>
         <button class="btn" id="generateFunc">Generate Function</button>
       </div>
-      <small>Draw a curve, then click "Generate Function" to approximate it.</small>
+      <small>Draw a curve, then click "Generate Function".</small>
     </div>
 
   </div>
-
   <div class="right-panel">
     <div class="graph-container">
       <canvas id="graphCanvas" width="600" height="400"></canvas>
@@ -373,40 +351,22 @@
   <div class="calculator-body">
     <input type="text" class="calc-display" id="calcDisplay" readonly />
     <div class="calc-row">
-      <div class="calc-btn" data-val="7">7</div>
-      <div class="calc-btn" data-val="8">8</div>
-      <div class="calc-btn" data-val="9">9</div>
-      <div class="calc-btn" data-val="/">÷</div>
+      <div class="calc-btn" data-val="7">7</div><div class="calc-btn" data-val="8">8</div><div class="calc-btn" data-val="9">9</div><div class="calc-btn" data-val="/">÷</div>
     </div>
     <div class="calc-row">
-      <div class="calc-btn" data-val="4">4</div>
-      <div class="calc-btn" data-val="5">5</div>
-      <div class="calc-btn" data-val="6">6</div>
-      <div class="calc-btn" data-val="*">×</div>
+      <div class="calc-btn" data-val="4">4</div><div class="calc-btn" data-val="5">5</div><div class="calc-btn" data-val="6">6</div><div class="calc-btn" data-val="*">×</div>
     </div>
     <div class="calc-row">
-      <div class="calc-btn" data-val="1">1</div>
-      <div class="calc-btn" data-val="2">2</div>
-      <div class="calc-btn" data-val="3">3</div>
-      <div class="calc-btn" data-val="-">-</div>
+      <div class="calc-btn" data-val="1">1</div><div class="calc-btn" data-val="2">2</div><div class="calc-btn" data-val="3">3</div><div class="calc-btn" data-val="-">-</div>
     </div>
     <div class="calc-row">
-      <div class="calc-btn" data-val="0">0</div>
-      <div class="calc-btn" data-val=".">.</div>
-      <div class="calc-btn" data-val="(">(</div>
-      <div class="calc-btn" data-val=")">)</div>
+      <div class="calc-btn" data-val="0">0</div><div class="calc-btn" data-val=".">.</div><div class="calc-btn" data-val="(">(</div><div class="calc-btn" data-val=")">)</div>
     </div>
     <div class="calc-row">
-      <div class="calc-btn" data-val="sin(">sin</div>
-      <div class="calc-btn" data-val="cos(">cos</div>
-      <div class="calc-btn" data-val="tan(">tan</div>
-      <div class="calc-btn" data-val="+">+</div>
+      <div class="calc-btn" data-val="sin(">sin</div><div class="calc-btn" data-val="cos(">cos</div><div class="calc-btn" data-val="tan(">tan</div><div class="calc-btn" data-val="+">+</div>
     </div>
     <div class="calc-row">
-      <div class="calc-btn" data-val="^">^</div>
-      <div class="calc-btn" data-val="√">√</div>
-      <div class="calc-btn" data-val="Math.log10(">log</div>
-      <div class="calc-btn" data-val="Math.exp(">exp</div>
+      <div class="calc-btn" data-val="^">^</div><div class="calc-btn" data-val="Math.sqrt(">√</div><div class="calc-btn" data-val="Math.log10(">log</div><div class="calc-btn" data-val="Math.exp(">exp</div>
     </div>
     <div class="calc-row">
       <div class="calc-btn" id="calcClear">C</div>
@@ -414,6 +374,444 @@
     </div>
   </div>
 </div>
-<!-- JavaScript goes here -->
+
+<script>
+// ----------------------- Function Palette Insert -----------------------
+document.querySelectorAll('.fp-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const eqInput=document.getElementById('equationInput');
+    eqInput.value += btn.getAttribute('data-func');
+  });
+});
+
+// ----------------------- Calculator -----------------------
+const modal = document.getElementById('calculatorModal');
+const openCalc = document.getElementById('openCalc');
+const closeCalc = document.getElementById('closeCalc');
+const calcDisplay = document.getElementById('calcDisplay');
+const calcExpression = document.getElementById('calcExpression');
+openCalc.addEventListener('click', ()=>{
+  modal.style.display='block';
+  calcDisplay.value=(calcExpression.value||'');
+});
+closeCalc.addEventListener('click', ()=>{modal.style.display='none';});
+document.getElementById('calcClear').addEventListener('click',()=>{calcDisplay.value='';});
+document.getElementById('calcEquals').addEventListener('click',()=>{
+  let expr = calcDisplay.value;
+  expr = expr.replace(/√/g,'Math.sqrt');
+  expr = expr.replace(/sin\(/g,'Math.sin(')
+             .replace(/cos\(/g,'Math.cos(')
+             .replace(/tan\(/g,'Math.tan(');
+  expr = expr.replace(/(\d+(\.\d+)?|\))\^(\d+(\.\d+)?|\()/g,'Math.pow($1,$3)');
+
+  try{
+    let result=eval(expr);
+    calcDisplay.value=result;
+    calcExpression.value=result;
+  }catch(e){
+    calcDisplay.value='Error';
+  }
+});
+
+// ----------------------- Drawing Canvas -----------------------
+(function(){
+  const canvas=document.getElementById('drawCanvas');
+  const ctx=canvas.getContext('2d');
+  const axisCanvas=document.getElementById('drawAxisCanvas');
+  const actx=axisCanvas.getContext('2d');
+  let drawing=false;
+  let drawnPoints=[];
+
+  function drawDrawAxis(){
+    actx.clearRect(0,0,axisCanvas.width,axisCanvas.height);
+    actx.strokeStyle="#aaa";
+    let cx=axisCanvas.width/2;
+    let cy=axisCanvas.height/2;
+    // x-axis
+    actx.beginPath();
+    actx.moveTo(0,cy);
+    actx.lineTo(axisCanvas.width,cy);
+    actx.stroke();
+    // y-axis
+    actx.beginPath();
+    actx.moveTo(cx,0);
+    actx.lineTo(cx,axisCanvas.height);
+    actx.stroke();
+  }
+  drawDrawAxis();
+
+  canvas.addEventListener('mousedown',(e)=>{
+    drawing=true;
+    ctx.beginPath();
+    ctx.moveTo(e.offsetX,e.offsetY);
+    drawnPoints.push({x:e.offsetX,y:e.offsetY});
+  });
+  canvas.addEventListener('mousemove',(e)=>{
+    if(drawing){
+      ctx.lineTo(e.offsetX,e.offsetY);
+      ctx.stroke();
+      drawnPoints.push({x:e.offsetX,y:e.offsetY});
+    }
+  });
+  canvas.addEventListener('mouseup',()=>{drawing=false;});
+  canvas.addEventListener('mouseleave',()=>{drawing=false;});
+
+  document.getElementById('clearDraw').addEventListener('click',()=>{
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    drawnPoints=[];
+  });
+
+  document.getElementById('generateFunc').addEventListener('click',()=>{
+    if(drawnPoints.length<2){
+      alert("Draw something first!");
+      return;
+    }
+    const Xrange=[-10,10];
+    const Yrange=[-10,10];
+    const cwidth=canvas.width;
+    const cheight=canvas.height;
+
+    function c2gx(cx){return Xrange[0]+(Xrange[1]-Xrange[0])*(cx/cwidth);}
+    function c2gy(cy){return Yrange[1]-(Yrange[1]-Yrange[0])*(cy/cheight);}
+
+    let sampled=[];
+    for(let i=0;i<drawnPoints.length;i+=Math.max(1,Math.floor(drawnPoints.length/50))){
+      sampled.push(drawnPoints[i]);
+    }
+    if(sampled[sampled.length-1]!==drawnPoints[drawnPoints.length-1]){
+      sampled.push(drawnPoints[drawnPoints.length-1]);
+    }
+
+    let graphPoints=sampled.map(p=>({x:c2gx(p.x),y:c2gy(p.y)}));
+    window.drawnFunction={points:graphPoints};
+    alert("Function generated from drawing!");
+  });
+})();
+
+// ----------------------- Graph Drawing -----------------------
+(function(){
+  const graphCanvas=document.getElementById('graphCanvas');
+  const gctx=graphCanvas.getContext('2d');
+  const hoverInfo=document.getElementById('graphHoverInfo');
+  let globalScale=20;
+  let drawnGraphs=[];
+  window.drawnFunction=null;
+
+  let xMin=-10,xMax=10,yMin=-10,yMax=10;
+
+  graphCanvas.addEventListener('mousemove',(e)=>{
+    const rect=graphCanvas.getBoundingClientRect();
+    const mx=e.clientX-rect.left;
+    const my=e.clientY-rect.top;
+    const cx=graphCanvas.width/2;
+    const cy=graphCanvas.height/2;
+    let gx=(mx-cx)/globalScale;
+    let gy=(cy-my)/globalScale;
+    hoverInfo.style.display='block';
+    hoverInfo.style.left='5px';
+    hoverInfo.style.top='5px';
+    hoverInfo.innerText=`x=${gx.toFixed(2)}, y=${gy.toFixed(2)}`;
+  });
+  graphCanvas.addEventListener('mouseleave',()=>{
+    hoverInfo.style.display='none';
+  });
+
+  function drawAxis2D(){
+    gctx.clearRect(0,0,graphCanvas.width,graphCanvas.height);
+    gctx.strokeStyle="#aaa";
+    gctx.lineWidth=1;
+    const cx=graphCanvas.width/2;
+    const cy=graphCanvas.height/2;
+    // x-axis
+    gctx.beginPath();
+    gctx.moveTo(0,cy);
+    gctx.lineTo(graphCanvas.width,cy);
+    gctx.stroke();
+    // y-axis
+    gctx.beginPath();
+    gctx.moveTo(cx,0);
+    gctx.lineTo(cx,graphCanvas.height);
+    gctx.stroke();
+  }
+
+  function drawAxis3D(){
+    gctx.clearRect(0,0,graphCanvas.width,graphCanvas.height);
+    // Simple 3D axes
+    gctx.strokeStyle="#aaa";
+    gctx.lineWidth=1;
+    let p1=project3D(0,0,0);
+    let px=project3D(5,0,0), py=project3D(0,5,0), pz=project3D(0,0,5);
+    // x-axis
+    gctx.beginPath();gctx.moveTo(p1.x,p1.y);gctx.lineTo(px.x,px.y);gctx.stroke();
+    // y-axis
+    gctx.beginPath();gctx.moveTo(p1.x,p1.y);gctx.lineTo(py.x,py.y);gctx.stroke();
+    // z-axis
+    gctx.beginPath();gctx.moveTo(p1.x,p1.y);gctx.lineTo(pz.x,pz.y);gctx.stroke();
+  }
+
+  let angleX=Math.PI/4, angleZ=Math.PI/6, dist=300;
+  function project3D(X,Y,Z){
+    let Yp=Y*Math.cos(angleX)-Z*Math.sin(angleX);
+    let Zp=Y*Math.sin(angleX)+Z*Math.cos(angleX);
+    let Xp=X*Math.cos(angleZ)-Yp*Math.sin(angleZ);
+    let Ypp=X*Math.sin(angleZ)+Yp*Math.cos(angleZ);
+    let scale=dist/(dist+Zp);
+    const cx=graphCanvas.width/2;
+    const cy=graphCanvas.height/2;
+    return {x:cx+Xp*globalScale*scale,y:cy - Ypp*globalScale*scale};
+  }
+
+  function setLineStyle(style){
+    let dash=[];
+    switch(style){
+      case 'dotted':dash=[1,2];break;
+      case 'dashed':dash=[5,5];break;
+      case 'double':dash=[2,2];break;
+      case 'groove':dash=[10,10];break;
+      default:dash=[];
+    }
+    gctx.setLineDash(dash);
+  }
+
+  function parseFunction(eq){
+    let expr=eq.trim();
+    expr=expr.replace(/^z\s*=\s*/,''); // Remove z= for 3D
+    expr=expr.replace(/\\sin\(/g,'Math.sin(')
+             .replace(/\\cos\(/g,'Math.cos(')
+             .replace(/\\tan\(/g,'Math.tan(');
+    expr=expr.replace(/([a-zA-Z0-9]+)\^([a-zA-Z0-9]+)/g,'Math.pow($1,$2)');
+    expr=expr.replace(/\\/g,'');
+    return expr;
+  }
+
+  function drawGraph2D(expr, style, color, fill){
+    const cx=graphCanvas.width/2;
+    const cy=graphCanvas.height/2;
+    const step=(xMax-xMin)/200;
+    setLineStyle(style);
+    gctx.strokeStyle=color;
+    gctx.lineWidth=2;
+
+    let f=new Function('x',`
+      try {
+        return ${expr};
+      } catch(e){return NaN;}
+    `);
+
+    gctx.beginPath();
+    let start=true;
+    let points=[];
+    for(let X=xMin;X<=xMax;X+=step){
+      let Y=f(X);
+      if(isNaN(Y)||!isFinite(Y)){
+        start=true;
+      }else{
+        let px=cx+X*globalScale;
+        let py=cy - Y*globalScale;
+        if(start){gctx.moveTo(px,py);start=false;} else {gctx.lineTo(px,py);}
+        points.push({X,Y,px,py});
+      }
+    }
+    gctx.stroke();
+
+    if(fill && points.length>1){
+      gctx.fillStyle=color+"22";
+      gctx.beginPath();
+      gctx.moveTo(points[0].px,cy);
+      for(let i=0;i<points.length;i++){
+        gctx.lineTo(points[i].px,points[i].py);
+      }
+      gctx.lineTo(points[points.length-1].px,cy);
+      gctx.closePath();
+      gctx.fill();
+    }
+
+    gctx.setLineDash([]);
+
+    return points;
+  }
+
+  function drawGraph3D(expr, style, color){
+    let f=new Function('x','y',`
+      try{
+        return ${expr};
+      }catch(e){return NaN;}
+    `);
+
+    let steps=20;
+    let Xrange=[xMin,xMax],Yrange=[yMin,yMax];
+    let dx=(Xrange[1]-Xrange[0])/steps;
+    let dy=(Yrange[1]-Yrange[0])/steps;
+
+    setLineStyle(style);
+    gctx.strokeStyle=color;
+    gctx.lineWidth=1.5;
+
+    // x-direction lines
+    for(let i=0;i<=steps;i++){
+      let Y=Yrange[0]+dy*i;
+      let start=true;
+      gctx.beginPath();
+      for(let j=0;j<=steps;j++){
+        let X=Xrange[0]+dx*j;
+        let Z=f(X,Y);
+        if(isNaN(Z)||!isFinite(Z)){start=true;continue;}
+        let p=project3D(X,Y,Z);
+        if(start){gctx.moveTo(p.x,p.y);start=false;}else{gctx.lineTo(p.x,p.y);}
+      }
+      gctx.stroke();
+    }
+
+    // y-direction lines
+    for(let j=0;j<=steps;j++){
+      let X=Xrange[0]+dx*j;
+      let start=true;
+      gctx.beginPath();
+      for(let i=0;i<=steps;i++){
+        let Y=Yrange[0]+dy*i;
+        let Z=f(X,Y);
+        if(isNaN(Z)||!isFinite(Z)){start=true;continue;}
+        let p=project3D(X,Y,Z);
+        if(start){gctx.moveTo(p.x,p.y);start=false;}else{gctx.lineTo(p.x,p.y);}
+      }
+      gctx.stroke();
+    }
+
+    gctx.setLineDash([]);
+  }
+
+  function drawPiecewiseFromDrawn(style,color){
+    if(!window.drawnFunction)return;
+    let gData=window.drawnFunction.points;
+    if(!gData||gData.length<2)return;
+    const cx=graphCanvas.width/2;
+    const cy=graphCanvas.height/2;
+    setLineStyle(style);
+    gctx.strokeStyle=color;
+    gctx.lineWidth=2;
+
+    gctx.beginPath();
+    gctx.moveTo(cx+gData[0].x*globalScale,cy-gData[0].y*globalScale);
+    for(let i=1;i<gData.length;i++){
+      gctx.lineTo(cx+gData[i].x*globalScale,cy-gData[i].y*globalScale);
+    }
+    gctx.stroke();
+    gctx.setLineDash([]);
+  }
+
+  function findIntersections(allPointsArrays){
+    // Very rough intersection finder for 2D:
+    let intersections=[];
+    for(let i=0;i<allPointsArrays.length;i++){
+      for(let j=i+1;j<allPointsArrays.length;j++){
+        let arr1=allPointsArrays[i];
+        let arr2=allPointsArrays[j];
+        // simple approach: assume same length arrays not guaranteed
+        let length=Math.min(arr1.length,arr2.length);
+        for(let k=1;k<length;k++){
+          let dy0=arr1[k-1].Y - arr2[k-1].Y;
+          let dy1=arr1[k].Y - arr2[k].Y;
+          if(dy0*dy1<0){
+            // intersection near here
+            let Xmid=(arr1[k].X+arr1[k-1].X)/2;
+            let Ymid=(arr1[k].Y+arr1[k-1].Y)/2;
+            intersections.push({X:Xmid,Y:Ymid});
+          }
+        }
+      }
+    }
+    return intersections;
+  }
+
+  function drawIntersections(intersections){
+    if(intersections.length===0)return;
+    const cx=graphCanvas.width/2;
+    const cy=graphCanvas.height/2;
+    gctx.fillStyle="#A2142F";
+    for(let p of intersections){
+      let px=cx+p.X*globalScale;
+      let py=cy - p.Y*globalScale;
+      gctx.beginPath();
+      gctx.arc(px,py,4,0,Math.PI*2);
+      gctx.fill();
+    }
+  }
+
+  function redraw(){
+    if(drawnGraphs.length>0){
+      let lastDim=drawnGraphs[drawnGraphs.length-1].dimension;
+      if(lastDim==='2D'){
+        drawAxis2D();
+        let allPoints=[];
+        for(let g of drawnGraphs){
+          if(g.dimension==='2D'){
+            let pts=drawGraph2D(g.expr, g.style, g.color, g.fill);
+            if(pts) allPoints.push(pts);
+          }
+        }
+        if(window.drawnFunction){
+          drawPiecewiseFromDrawn('solid','#EDB120');
+        }
+        let inter=findIntersections(allPoints);
+        drawIntersections(inter);
+      }else{
+        drawAxis3D();
+        for(let g of drawnGraphs){
+          if(g.dimension==='3D'){
+            drawGraph3D(g.expr,g.style,g.color);
+          }
+        }
+        if(window.drawnFunction){
+          // 3D piecewise not implemented
+        }
+      }
+    }else{
+      // no graphs
+      drawAxis2D();
+      if(window.drawnFunction){
+        drawPiecewiseFromDrawn('solid','#EDB120');
+      }
+    }
+  }
+
+  document.getElementById('drawButton').addEventListener('click',()=>{
+    const eqVal=document.getElementById('equationInput').value;
+    const equations=eqVal.split('\n').map(e=>e.trim()).filter(e=>e.length>0);
+    const style=document.getElementById('lineStyle').value;
+    const color=document.getElementById('lineColor').value;
+    const fill=document.getElementById('fillArea').checked;
+    const dimension=document.querySelector('input[name="dimension"]:checked').value;
+    const overlayMode=document.querySelector('input[name="overlayMode"]:checked').value;
+
+    if(dimension==='3D'){
+      alert("3D mode is simple wireframe only. No fill or intersections.");
+    }
+
+    if(overlayMode==='new'){
+      drawnGraphs=[];
+    }
+
+    for(let eq of equations){
+      let expr=parseFunction(eq);
+      drawnGraphs.push({expr,style,color,fill,dimension});
+    }
+
+    redraw();
+  });
+
+  document.getElementById('zoomInBtn').addEventListener('click',()=>{
+    globalScale*=1.2;redraw();
+  });
+  document.getElementById('zoomOutBtn').addEventListener('click',()=>{
+    globalScale/=1.2;redraw();
+  });
+  document.getElementById('resetZoomBtn').addEventListener('click',()=>{
+    globalScale=20;redraw();
+  });
+
+  // initial empty axis
+  drawAxis2D();
+})();
+</script>
 </body>
 </html>
